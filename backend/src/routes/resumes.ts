@@ -156,7 +156,12 @@ router.post('/upload', authenticateToken, requireRole(['jobseeker']), upload.sin
       [fileUrl, req.file.originalname, now, resume.id]
     );
 
-    res.json({ url: fileUrl, name: req.file.originalname });
+    const updatedResume = await getRow<Resume>('SELECT * FROM resumes WHERE id = ?', [resume.id]);
+    res.json({ 
+      url: fileUrl, 
+      name: req.file.originalname,
+      resume: updatedResume
+    });
   } catch (error) {
     console.error('Upload resume error:', error);
     res.status(500).json({ error: '上传失败' });
@@ -324,6 +329,56 @@ router.delete('/project-experience/:id', authenticateToken, requireRole(['jobsee
   } catch (error) {
     console.error('Delete project experience error:', error);
     res.status(500).json({ error: '删除失败' });
+  }
+});
+
+router.patch('/my', authenticateToken, requireRole(['jobseeker']), async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: '未登录' });
+    }
+
+    const existingResume = await getRow<Resume>('SELECT * FROM resumes WHERE userId = ?', [req.user.id]);
+    if (!existingResume) {
+      return res.status(400).json({ error: '请先创建简历' });
+    }
+
+    const allowedFields = [
+      'name', 'phone', 'email', 'gender', 'birthday', 'currentCity',
+      'education', 'major', 'graduationYear', 'workYears',
+      'currentPosition', 'currentCompany', 'currentSalary',
+      'expectedSalary', 'expectedCity', 'expectedPosition',
+      'selfIntroduction', 'attachmentUrl', 'attachmentName'
+    ];
+
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(req.body[field] === '' ? null : req.body[field]);
+      }
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: '没有要更新的字段' });
+    }
+
+    const now = new Date().toISOString();
+    updates.push('updatedAt = ?');
+    values.push(now, existingResume.id);
+
+    await runQuery(
+      `UPDATE resumes SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    const resume = await getRow<Resume>('SELECT * FROM resumes WHERE id = ?', [existingResume.id]);
+    res.json(resume);
+  } catch (error) {
+    console.error('Patch resume error:', error);
+    res.status(500).json({ error: '更新简历失败' });
   }
 });
 

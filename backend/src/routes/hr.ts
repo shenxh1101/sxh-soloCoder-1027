@@ -55,47 +55,47 @@ router.get('/applications', authenticateToken, requireRole(['hr']), async (req: 
 
     const { jobId, status, keyword, page = 1, pageSize = 10 } = req.query;
 
-    let sql = `
+    const whereConditions: string[] = ['j.hrId = ?'];
+    const whereParams: any[] = [req.user.id];
+
+    if (jobId) {
+      whereConditions.push('a.jobId = ?');
+      whereParams.push(jobId);
+    }
+    if (status && status !== 'all') {
+      whereConditions.push('a.status = ?');
+      whereParams.push(status);
+    }
+    if (keyword) {
+      whereConditions.push('(r.name LIKE ? OR j.title LIKE ?)');
+      whereParams.push(`%${keyword}%`, `%${keyword}%`);
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    const listSql = `
       SELECT a.*, j.title, r.name as applicantName, r.phone as applicantPhone, 
              r.email as applicantEmail, r.education, r.workYears,
              r.currentPosition, r.currentCompany
       FROM applications a
       LEFT JOIN jobs j ON a.jobId = j.id
       LEFT JOIN resumes r ON a.resumeId = r.id
-      WHERE j.hrId = ?
+      WHERE ${whereClause}
+      ORDER BY a.updatedAt DESC
+      LIMIT ? OFFSET ?
     `;
-    const params: any[] = [req.user.id];
+    const listParams = [...whereParams, parseInt(pageSize as string), (parseInt(page as string) - 1) * parseInt(pageSize as string)];
 
-    if (jobId) {
-      sql += ' AND a.jobId = ?';
-      params.push(jobId);
-    }
-    if (status && status !== 'all') {
-      sql += ' AND a.status = ?';
-      params.push(status);
-    }
-    if (keyword) {
-      sql += ' AND (r.name LIKE ? OR j.title LIKE ?)';
-      params.push(`%${keyword}%`, `%${keyword}%`);
-    }
+    const applications = await getRows(listSql, listParams);
 
-    sql += ' ORDER BY a.updatedAt DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(pageSize as string), (parseInt(page as string) - 1) * parseInt(pageSize as string));
-
-    const applications = await getRows(sql, params);
-
-    let countSql = `
+    const countSql = `
       SELECT COUNT(*) as total
       FROM applications a
       LEFT JOIN jobs j ON a.jobId = j.id
       LEFT JOIN resumes r ON a.resumeId = r.id
-      WHERE j.hrId = ?
+      WHERE ${whereClause}
     `;
-    const countParams = params.slice(0, -2);
-    if (params.length > 2) {
-      countSql += ' AND ' + sql.split('WHERE')[1].split('ORDER')[0].trim().replace('LIMIT ? OFFSET ?', '').trim();
-    }
-    const countResult = await getRow<{ total: number }>(countSql, countParams);
+    const countResult = await getRow<{ total: number }>(countSql, whereParams);
 
     res.json({
       list: applications,
@@ -120,7 +120,7 @@ router.get('/stats', authenticateToken, requireRole(['hr']), async (req: AuthReq
       return res.status(400).json({ error: '未关联企业信息' });
     }
 
-    const jobStats = await getRows(`
+    const jobStats = await getRows<{ totalViews: number; totalApplies: number; totalJobs: number }>(`
       SELECT 
         SUM(viewCount) as totalViews,
         SUM(applyCount) as totalApplies,

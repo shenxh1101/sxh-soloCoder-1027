@@ -251,17 +251,14 @@ const Resume: React.FC = () => {
     setSaving(true);
     try {
       const data = await resumeApi.uploadResume(file);
-      await resumeApi.saveResume({
-        attachmentUrl: data.url,
-        attachmentName: data.name,
-      });
-      await loadResume();
+      setResume(data.resume);
       showMessage('success', '附件上传成功');
     } catch (error) {
       console.error('Failed to upload:', error);
       showMessage('error', '上传失败，请重试');
     } finally {
       setSaving(false);
+      e.target.value = '';
     }
   };
 
@@ -280,8 +277,8 @@ const Resume: React.FC = () => {
   const handleSaveIntention = async () => {
     setSaving(true);
     try {
-      await resumeApi.saveResume(intention);
-      await loadResume();
+      const updatedResume = await resumeApi.patchResume(intention);
+      setResume(updatedResume);
       showMessage('success', '求职意向保存成功');
     } catch (error) {
       console.error('Failed to save intention:', error);

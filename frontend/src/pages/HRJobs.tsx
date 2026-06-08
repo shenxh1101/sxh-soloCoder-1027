@@ -116,7 +116,9 @@ const HRJobs: React.FC = () => {
   const loadJobStats = async (jobId: string) => {
     try {
       const data = await hrApi.getJobStats(jobId);
+      const job = jobs.find(j => j.id === jobId);
       setJobStats(data);
+      setSelectedJob(job || null);
       setShowStatsModal(true);
     } catch (error) {
       console.error('Failed to load job stats:', error);

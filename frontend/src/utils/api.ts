@@ -83,10 +83,12 @@ export const resumeApi = {
 
   saveResume: (data: Partial<Resume>) => api.post<Resume>('/resumes', data).then(res => res.data),
 
+  patchResume: (data: Partial<Resume>) => api.patch<Resume>('/resumes/my', data).then(res => res.data),
+
   uploadResume: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post<{ url: string; name: string }>('/resumes/upload', formData, {
+    return api.post<{ url: string; name: string; resume: Resume }>('/resumes/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }).then(res => res.data);
   },
@@ -144,7 +146,7 @@ export const interviewApi = {
 
   getMyInterviews: () => api.get<Interview[]>('/interviews/my').then(res => res.data),
 
-  updateInterview: (id: string, data: { status?: string; result?: string; notes?: string }) =>
+  updateInterview: (id: string, data: { type?: string; dateTime?: string; location?: string; status?: string; result?: string; notes?: string }) =>
     api.put<Interview>(`/interviews/${id}`, data).then(res => res.data),
 };
 

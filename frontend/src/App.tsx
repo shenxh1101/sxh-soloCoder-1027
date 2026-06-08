@@ -44,7 +44,7 @@ const App: React.FC = () => {
           <Route
             path="/favorites"
             element={
-              <ProtectedRoute requiredRole="jobseeker">
+              <ProtectedRoute allowedRoles={['jobseeker']}>
                 <Favorites />
               </ProtectedRoute>
             }
@@ -52,7 +52,7 @@ const App: React.FC = () => {
           <Route
             path="/resume"
             element={
-              <ProtectedRoute requiredRole="jobseeker">
+              <ProtectedRoute allowedRoles={['jobseeker']}>
                 <Resume />
               </ProtectedRoute>
             }
@@ -60,7 +60,7 @@ const App: React.FC = () => {
           <Route
             path="/applications"
             element={
-              <ProtectedRoute requiredRole="jobseeker">
+              <ProtectedRoute allowedRoles={['jobseeker']}>
                 <Applications />
               </ProtectedRoute>
             }
@@ -69,7 +69,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/dashboard"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRDashboard />
               </ProtectedRoute>
             }
@@ -77,7 +77,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/jobs"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRJobs />
               </ProtectedRoute>
             }
@@ -85,7 +85,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/jobs/:action"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRJobs />
               </ProtectedRoute>
             }
@@ -93,7 +93,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/jobs/:action/:id"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRJobs />
               </ProtectedRoute>
             }
@@ -101,7 +101,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/applications"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRApplications />
               </ProtectedRoute>
             }
@@ -109,7 +109,7 @@ const App: React.FC = () => {
           <Route
             path="/hr/interviews"
             element={
-              <ProtectedRoute requiredRole="hr">
+              <ProtectedRoute allowedRoles={['hr']}>
                 <HRInterviews />
               </ProtectedRoute>
             }

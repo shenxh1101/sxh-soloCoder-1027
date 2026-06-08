@@ -49,7 +49,8 @@ router.post('/register', async (req, res) => {
     
     let company: Company | undefined;
     if (companyId) {
-      company = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [companyId]);
+      const result = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [companyId]);
+      if (result) company = result;
     }
 
     res.json({ token, user, company } as AuthResponse);
@@ -83,7 +84,8 @@ router.post('/login', async (req, res) => {
     
     let company: Company | undefined;
     if (user.companyId) {
-      company = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [user.companyId]);
+      const result = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [user.companyId]);
+      if (result) company = result;
     }
 
     res.json({ token, user: userWithoutPassword, company } as AuthResponse);
@@ -106,7 +108,8 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
 
     let company: Company | undefined;
     if (user.companyId) {
-      company = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [user.companyId]);
+      const result = await getRow<Company>('SELECT * FROM companies WHERE id = ?', [user.companyId]);
+      if (result) company = result;
     }
 
     res.json({ user, company });
